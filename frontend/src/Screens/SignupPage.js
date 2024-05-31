@@ -64,9 +64,9 @@ const SignupPage = () => {
                 <View style={styles.line}/>
             </View>
             <View style={styles.socialContainer}>
-                <Image style={styles.socialLink} source={google}/>
-                <Image style={styles.socialLink} source={facebook}/>
-                <Image style={styles.socialLink} source={twitter}/>
+                <Image style={styles.socialLink} source={google} testID="google-icon"/>
+                <Image style={styles.socialLink} source={facebook} testID="facebook-icon"/>
+                <Image style={styles.socialLink} source={twitter} testID="twitter-icon"/>
             </View>
             <View style={styles.signupLink}>
                 <Text style={{fontSize:17}}>Already have an account? </Text>
