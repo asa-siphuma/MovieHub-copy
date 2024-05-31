@@ -1,16 +1,24 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import movie2 from '../../../assets/Assassin_movie.jpg'
+import movie2 from '../../../assets/Assassin_movie.jpg';
+import { useNavigation } from '@react-navigation/native';
 
 export default function MainHeader() {
+
+    const navigation = useNavigation();
+
+    const profilePage = () => {
+        navigation.navigate("ProfilePage");
+    };
+
     return (
         <View style={styles.header}>
             <View style={styles.iconRow}>
                 <Icon name='home' size={30} paddingLeft={10} style={styles.icon} />
                 <Icon name='notifications' size={30} style={styles.icon} />
                 <Icon name='chat' size={30} style={styles.icon} />
-                <TouchableOpacity >
+                <TouchableOpacity onPress={profilePage} >
                 <Image source={movie2} size={30} style={styles.Image} />
                 </TouchableOpacity>
             </View>

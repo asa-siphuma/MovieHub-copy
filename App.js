@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
-import React from "react";
+import {React, useState} from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomePage from "./frontend/src/Screens/HomePage";
@@ -8,12 +8,29 @@ import MainHeader from "./frontend/src/Components/MainHeader";
 import BottomHeader from "./frontend/src/Components/BottomHeader"
 import SignupPage from "./frontend/src/Screens/SignupPage"
 import LoginPage from './frontend/src/Screens/LoginPage';
+import ProfilePage from './frontend/src/Screens/ProfilePage';
+import EditProfile from './frontend/src/Screens/EditProfile';
+import ProfileHeader from './frontend/src/Components/ProfileHeader'
+import Icon from "react-native-vector-icons/MaterialIcons";
+import CustomDrawer from "./frontend/src/Components/ProfileDrawer";
 
 
 const Nav = createNativeStackNavigator();
 
 export default function App() {
+    const [drawerVisible, setDrawerVisible] = useState(false);
+    const [navigationState, setNavigationState] = useState(null);
+
+    const toggleDrawer = () => {
+        setDrawerVisible(!drawerVisible);
+    };
+
+    const closeDrawer = () => {
+        setDrawerVisible(false);
+    };
   return (
+
+    
 
     <NavigationContainer>
       <Nav.Navigator initialRouteName="SignupPage">
@@ -32,7 +49,37 @@ export default function App() {
           component={LoginPage}
           options={{ headerShown: false }}
         />
+        <Nav.Screen
+          name="ProfilePage"
+          component={ProfilePage}
+          options={({ navigation }) => ({
+              header: () => <ProfileHeader toggleDrawer={toggleDrawer} navigation={navigation} />,
+          })}
+        />
+         <Nav.Screen
+                    name="EditProfile"
+                    component={EditProfile}
+                    options={() => ({
+                        title: "Edit Profile",
+                        headerStyle: {
+                            backgroundColor: "#fff",
+                        },
+                        headerTintColor: "#000",
+                        headerTitleStyle: {
+                            fontWeight: "bold",
+                        },
+                        headerRight: () => (
+                            <View style={{ marginRight: 10 }}>
+                                {/* Your menu icon component */}
+                                <Text onPress={toggleDrawer}>
+                                    <Icon name="menu" size={24} />
+                                </Text>
+                            </View>
+                        ),
+                    })}
+                />
       </Nav.Navigator>
+      {drawerVisible && <CustomDrawer navigation={navigationState} closeDrawer={closeDrawer} />}
       <StatusBar style="auto" />
     </NavigationContainer>
 
