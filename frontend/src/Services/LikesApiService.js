@@ -2,7 +2,11 @@
 import * as SecureStore from 'expo-secure-store';
 
 //const API_URL = process.env.REACT_APP_AUTH_API_URL || 'http://192.168.3.218:3000/like/'; // Update to your Expo URL
-const API_URL = 'http://localhost:3000/like/';
+// const API_URL = 'http://localhost:3000/like/';
+import { getLocalIP } from '../../../getLocalIP';
+
+const localIP = getLocalIP();
+const API_URL = `http://${localIP}:3000/like`;
 
 const getToken = async () => {
     const token = await SecureStore.getItemAsync('userToken');

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { StyleSheet, Text, View, StatusBar, Animated, Platform, Image, Dimensions, FlatList, Pressable } from "react-native";
 
 import TrendingMovie from "../Components/TrendingMovies";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { getMovies } from "../api";
 import { getFriendsContent } from "../Services/ExploreApiService";
 import { getLikesOfReview, getLikesOfPost } from "../Services/LikesApiService";
@@ -101,53 +101,63 @@ const Home = ({ route }) => {
     const scrollX = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchMovies = async () => {
             try {
-                const movies = await getMovies();
-                const friendsData = await getFriendsContent(userInfo);
-                // Extract posts and reviews
-                const { posts, reviews } = friendsData;
-
-                // Combine posts and reviews
-                const combinedContent = [
-                    ...posts.map(post => ({ ...post, type: 'post' })),
-                    ...reviews.map(review => ({ ...review, type: 'review' }))
-                ];
-
-                // Sort combined content by createdAt in descending order
-                const sortedContent = combinedContent.sort((a, b) => new Date(b.post?.createdAt || b.review?.createdAt) - new Date(a.post?.createdAt || a.review?.createdAt));
-
-                // Fetch likes for each post and review
-                const enrichedContent = await Promise.all(
-                    sortedContent.map(async (content) => {
-                        if (content.type === 'post') {
-                            const likes = await getLikesOfPost(content.post.postId);
-                            const comments = await getCountCommentsOfPost(content.post.postId);
-                            console.log("Post likes: ", likes.data);
-                            console.log("Post comments: ", comments.data);
-                            return { ...content, post: { ...content.post, likeCount: likes.data, commentCount: comments.data } };
-                        }
-                        if (content.type === 'review') {
-                            const likes = await getLikesOfReview(content.review.reviewId);
-                            const comments = await getCountCommentsOfReview(content.review.reviewId);
-                            console.log("Review likes: ", likes.data);
-                            console.log("Review comments: ", comments.data);
-                            return { ...content, review: { ...content.review, likeCount: likes.data, commentCount: comments.data } };
-                        }
-                        return content;
-                    })
-                );
-
-                setMovies([{ key: "empty-left" }, ...movies, { key: "empty-right" }]);
-               // setFriendsContent(sortedFriendsContent);
-                setSortedContent(enrichedContent);
+                const moviesData = await getMovies();
+                setMovies([{ key: "empty-left" }, ...moviesData, { key: "empty-right" }]);
             } catch (error) {
-                console.error("Failed to fetch data:", error);
+                console.error("Failed to fetch movies:", error);
             }
         };
 
-        fetchData();
+        fetchMovies();
     }, []);
+
+    // Fetch friends content
+    const fetchFriendsContent = useCallback(async () => {
+        try {
+            const friendsData = await getFriendsContent(userInfo);
+            const { posts, reviews } = friendsData;
+
+            const combinedContent = [
+                ...posts.map(post => ({ ...post, type: 'post' })),
+                ...reviews.map(review => ({ ...review, type: 'review' }))
+            ];
+
+            const sortedContent = combinedContent.sort((a, b) => 
+                new Date(b.post?.createdAt || b.review?.createdAt) - new Date(a.post?.createdAt || a.review?.createdAt)
+            );
+
+            const enrichedContent = await Promise.all(
+                sortedContent.map(async (content) => {
+                    if (content.type === 'post') {
+                        const likes = await getLikesOfPost(content.post.postId);
+                        const comments = await getCountCommentsOfPost(content.post.postId);
+                        return { ...content, post: { ...content.post, likeCount: likes.data, commentCount: comments.data } };
+                    }
+                    if (content.type === 'review') {
+                        const likes = await getLikesOfReview(content.review.reviewId);
+                        const comments = await getCountCommentsOfReview(content.review.reviewId);
+                        return { ...content, review: { ...content.review, likeCount: likes.data, commentCount: comments.data } };
+                    }
+                    return content;
+                })
+            );
+
+            setSortedContent(enrichedContent);
+            console.log("Home: friends content fecthed");
+        } catch (error) {
+            console.error("Failed to fetch friends content:", error);
+        }
+    }, [userInfo]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (userInfo) {
+                fetchFriendsContent();
+            }
+        }, [userInfo, fetchFriendsContent])
+    )
 
 
     if (movies.length === 0) {
